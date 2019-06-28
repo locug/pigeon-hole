@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -15,7 +14,6 @@ func (h *hole) mover() {
 		file := h.nextFile()
 		inFile := path.Join(h.holdDir, file)
 		outFile := path.Join(dir, file)
-		fmt.Println(inFile, outFile)
 
 		data, err := ioutil.ReadFile(inFile)
 		if err != nil {

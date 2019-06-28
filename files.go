@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"regexp"
@@ -28,7 +27,6 @@ func (h *hole) getFiles(s time.Duration) {
 					continue loop
 				}
 			}
-			fmt.Println("appended", f.Name(), " to priority ", priority)
 			h.holdFiles[priority] = append(h.holdFiles[priority], f.Name())
 		}
 		time.Sleep(s)
@@ -104,6 +102,5 @@ func (h *hole) nextPriority() int {
 			p = pr
 		}
 	}
-	// fmt.Printf("next priority is %d", p)
 	return p
 }
