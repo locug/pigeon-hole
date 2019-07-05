@@ -1,14 +1,14 @@
 package main
 
 import (
-	"path"
+	"log"
 	"time"
 )
 
 type hole struct {
 	holdDir string   // where the files live while waiting for an output directory
 	outDirs []string // the directorys where the files go
-	inDir   string   // where the files get put by external program
+	inDirs  []string // where the files get put by external program
 	// holdFiles should probably be map of channels to allow for adding and removing concurrently
 	holdFiles     map[int][]string // array of the files, the mapped int is the priority
 	availableDirs chan string
@@ -17,10 +17,11 @@ type hole struct {
 func main() {
 	// need a "new" function and these to be passed by variable
 	var h hole
-	h.holdDir = "folders/HOLD"
-	// TODO: Make it so either provide an array of out folders or regext for matching to that folder
-	h.outDirs = []string{"folders/XF999980", "folders/XF999981", "folders/XF999982", "folders/XF999983"}
-
+	err := h.make("hole.ini")
+	if err != nil {
+		log.Panicln(err)
+	}
+	// make the holdFiles map
 	h.holdFiles = make(map[int][]string)
 	// make the availableDirs chan with length of number of possible out dirs
 	h.availableDirs = make(chan string, len(h.outDirs))
@@ -34,18 +35,8 @@ func main() {
 	// h.getFiles()
 
 	// launch the out folder check
-	h.checkOut(time.Duration(1 * time.Second))
-}
-
-func (h *hole) hold(f string) string {
-	return path.Join(h.holdDir, f)
-}
-func (h *hole) in(f string) string {
-	return path.Join(h.inDir, f)
-}
-
-// pathOut takes the i of the array for outDirs to return the folder
-func (h *hole) out(i int, f string) string {
-
-	return ""
+	err = h.checkOut(time.Duration(1 * time.Second))
+	if err != nil {
+		log.Panicln(err)
+	}
 }
