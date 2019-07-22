@@ -14,3 +14,5 @@ folders/**
 
 # ignore binary
 pigeon-hole
+**.DS_Store
+Example/**
