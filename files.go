@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"regexp"
 	"time"
 )
@@ -27,8 +28,10 @@ func (h *hole) getFiles(s time.Duration) {
 					continue loop
 				}
 			}
+			// fmt.Println("Adding File: ", f.Name())
 			h.holdFiles[priority] = append(h.holdFiles[priority], f.Name())
 		}
+
 		time.Sleep(s)
 	}
 
@@ -65,16 +68,29 @@ func (h *hole) nextFile() string {
 func (h *hole) checkOut(s time.Duration) error {
 	for {
 		for _, d := range h.outDirs {
+
 			files, err := ioutil.ReadDir(d)
 			if err != nil {
 				return err
 			}
-			if len(files) == 0 {
+			// change from len to eligible files, this will eventually also look for the archive bit on windows systems
+			if eligibleFiles(files) == 0 {
 				h.availableDirs <- d
 			}
 		}
 		time.Sleep(s)
 	}
+}
+
+// eligibleFiles returns the length of eligible files in a folder
+func eligibleFiles(files []os.FileInfo) (length int) {
+	// needs to check for archive bit on windows
+	for _, file := range files {
+		if file.Name()[0:1] != "." {
+			length++
+		}
+	}
+	return
 }
 
 func getFilePriority(f string) int {
