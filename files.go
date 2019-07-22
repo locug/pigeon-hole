@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"regexp"
 	"time"
 )
 
@@ -17,10 +17,11 @@ func (h *hole) getFiles(s time.Duration) {
 		if err != nil {
 			log.Println(err)
 		}
+		_, files = eligibleFiles(files)
 	loop:
 		for _, f := range files {
 			// TODO: run regex over files to prioritis
-			priority := getFilePriority(f.Name())
+			priority := h.getFilePriority(f.Name())
 
 			// ranging over the current holdFiles with priority to see if file has already been added
 			// should probably be a map to simplify
@@ -30,7 +31,7 @@ func (h *hole) getFiles(s time.Duration) {
 					continue loop
 				}
 			}
-			// fmt.Println("Adding File: ", f.Name())
+			fmt.Printf("Adding File: %s with priority %d\n", f.Name(), priority)
 			h.holdFiles[priority] = append(h.holdFiles[priority], f.Name())
 		}
 		// unlock so other operations can do stuff
@@ -79,7 +80,8 @@ func (h *hole) checkOut(s time.Duration) error {
 				return err
 			}
 			// change from len to eligible files, this will eventually also look for the archive bit on windows systems
-			if eligibleFiles(files) == 0 {
+			l, _ := eligibleFiles(files)
+			if l == 0 {
 				h.availableDirs <- d
 				// sleep here to give time to make the directory used
 				// time.Sleep(100 * time.Millisecond)
@@ -92,29 +94,29 @@ func (h *hole) checkOut(s time.Duration) error {
 }
 
 // eligibleFiles returns the length of eligible files in a folder
-func eligibleFiles(files []os.FileInfo) (length int) {
+func eligibleFiles(files []os.FileInfo) (length int, outFiles []os.FileInfo) {
 	// needs to check for archive bit on windows
 	for _, file := range files {
 		if file.Name()[0:1] != "." {
 			length++
+			outFiles = append(outFiles, file)
 		}
 	}
 	return
 }
 
-func getFilePriority(f string) int {
+func (h *hole) getFilePriority(f string) int {
 	priority := 100
-
-	high := regexp.MustCompile(`^h_.+`)
-	med := regexp.MustCompile(`^g_.+`)
-
-	switch {
-	case high.MatchString(f):
-		priority = 1
-	case med.MatchString(f):
-		priority = 2
-
+	for _, p := range h.priorities {
+		if p.regex.MatchString(f) {
+			priority = p.level
+		}
 	}
+
+	// testregex := regexp.MustCompile(`^Z.+`)
+	// if testregex.MatchString(f) {
+
+	// }
 	return priority
 }
 

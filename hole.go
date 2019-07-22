@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"regexp"
 	"sync"
 	"time"
 )
@@ -14,6 +15,12 @@ type hole struct {
 	// holdFiles should probably be map of channels to allow for adding and removing concurrently
 	holdFiles     map[int][]string // array of the files, the mapped int is the priority
 	availableDirs chan string
+	priorities    []priority
+}
+
+type priority struct {
+	level int
+	regex *regexp.Regexp
 }
 
 func main() {
