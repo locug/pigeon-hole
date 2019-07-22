@@ -55,7 +55,7 @@ func (h *hole) prioritize(cfg *ini.File) {
 		case "D":
 			i, err := r.Int()
 			if err != nil {
-				log.Panicf("Value for default priority did not convert to int: %s", r.String(), err)
+				log.Panicf("Value for default priority did not convert to int: %s err: %v", r.String(), err)
 			}
 			h.defaultPriority = i
 		}

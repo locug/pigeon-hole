@@ -47,7 +47,7 @@ func (h *hole) nextFile() string {
 	// setting to 1
 	priority := h.nextPriority()
 
-	// if we get a 0
+	// if we get a 0 loop around
 	if priority == 0 {
 		time.Sleep(1 * time.Second)
 		return h.nextFile()
@@ -123,12 +123,17 @@ func (h *hole) getFilePriority(f string) int {
 
 // firstPriority returns the lowest priority int
 func (h *hole) nextPriority() int {
-	// should find the max priority first but defaulting to 100
-	p := 0
+	// should find the max priority first but defaulting to 1000
+	p := 1000
 	for pr := range h.holdFiles {
 		if pr < p && len(h.holdFiles[pr]) > 0 {
 			p = pr
 		}
+	}
+	// reversing the 1000 to 0 until the max priority is figured out and this will be better
+	// right now any priority over 1000 will not work
+	if p == 1000 {
+		p = 0
 	}
 	return p
 }
