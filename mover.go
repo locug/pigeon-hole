@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -11,9 +12,12 @@ func (h *hole) mover() {
 
 	for {
 		dir := <-h.availableDirs
+		// lock other operations while reading the directory
+		h.mutex.Lock()
 		file := h.nextFile()
 		inFile := path.Join(h.holdDir, file)
 		outFile := path.Join(dir, file)
+		fmt.Printf("moving %s to %s\n", file, dir)
 
 		data, err := ioutil.ReadFile(inFile)
 		if err != nil {
@@ -27,5 +31,7 @@ func (h *hole) mover() {
 			// since there wasn't an error meaning file was written delete original
 			os.RemoveAll(inFile)
 		}
+		// unlock so other operations can do stuff
+		h.mutex.Unlock()
 	}
 }

@@ -11,6 +11,8 @@ import (
 // get all the files in the hold directory and add them to the holdFiles array
 func (h *hole) getFiles(s time.Duration) {
 	for {
+		// lock other operations while reading the directory
+		h.mutex.Lock()
 		files, err := ioutil.ReadDir(h.holdDir)
 		if err != nil {
 			log.Println(err)
@@ -31,7 +33,8 @@ func (h *hole) getFiles(s time.Duration) {
 			// fmt.Println("Adding File: ", f.Name())
 			h.holdFiles[priority] = append(h.holdFiles[priority], f.Name())
 		}
-
+		// unlock so other operations can do stuff
+		h.mutex.Unlock()
 		time.Sleep(s)
 	}
 
@@ -67,6 +70,8 @@ func (h *hole) nextFile() string {
 // checkOut looks in the out dirs and adds any empty ones to the availableDirs channel
 func (h *hole) checkOut(s time.Duration) error {
 	for {
+		// lock other operations while reading the directory
+		h.mutex.Lock()
 		for _, d := range h.outDirs {
 
 			files, err := ioutil.ReadDir(d)
@@ -76,8 +81,12 @@ func (h *hole) checkOut(s time.Duration) error {
 			// change from len to eligible files, this will eventually also look for the archive bit on windows systems
 			if eligibleFiles(files) == 0 {
 				h.availableDirs <- d
+				// sleep here to give time to make the directory used
+				// time.Sleep(100 * time.Millisecond)
 			}
 		}
+		// unlock so other operations can do stuff
+		h.mutex.Unlock()
 		time.Sleep(s)
 	}
 }

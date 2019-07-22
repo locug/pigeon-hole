@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sync"
 	"time"
 )
 
@@ -9,6 +10,7 @@ type hole struct {
 	holdDir string   // where the files live while waiting for an output directory
 	outDirs []string // the directorys where the files go
 	inDirs  []string // where the files get put by external program
+	mutex   sync.Mutex
 	// holdFiles should probably be map of channels to allow for adding and removing concurrently
 	holdFiles     map[int][]string // array of the files, the mapped int is the priority
 	availableDirs chan string
