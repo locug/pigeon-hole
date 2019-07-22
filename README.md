@@ -6,3 +6,6 @@ I have a program that dumps files into a folder, they can be split between input
 
 ## Config
 Hard coded right now. Will be INI based.
+
+## TODO
+Make a class of file which will only be put in 1 processor at a time
