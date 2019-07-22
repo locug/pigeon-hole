@@ -13,9 +13,10 @@ type hole struct {
 	inDirs  []string // where the files get put by external program
 	mutex   sync.Mutex
 	// holdFiles should probably be map of channels to allow for adding and removing concurrently
-	holdFiles     map[int][]string // array of the files, the mapped int is the priority
-	availableDirs chan string
-	priorities    []priority
+	holdFiles       map[int][]string // array of the files, the mapped int is the priority
+	availableDirs   chan string
+	priorities      []priority
+	defaultPriority int
 }
 
 type priority struct {

@@ -36,16 +36,42 @@ func splitDirs(dirs string) []string {
 func (h *hole) prioritize(cfg *ini.File) {
 
 	for _, r := range cfg.Section("PRIORITY").Keys() {
-		l, err := strconv.Atoi(r.Name()[1:])
-		if err != nil {
-			log.Panicf("priority key did not convert to int key: %s err: %v", r.Name(), err)
+		// swithc over the first character of a priority
+		// P sets a priority
+		// D sets the default priority, multiple d's will not be handled correctly
+		// TODO: Error when multiple D's are found
+
+		switch string(r.Name()[0]) {
+		case "P":
+			l, err := getKeyInt(r.Name()[1:])
+			if err != nil {
+				log.Panicf("priority key did not convert to int key: %s err: %v", r.Name(), err)
+			}
+			p := priority{
+				level: l,
+				regex: regexp.MustCompile(`^` + r.String() + `.+`),
+			}
+			h.priorities = append(h.priorities, p)
+		case "D":
+			i, err := r.Int()
+			if err != nil {
+				log.Panicf("Value for default priority did not convert to int: %s", r.String(), err)
+			}
+			h.defaultPriority = i
 		}
-		p := priority{
-			level: l,
-			regex: regexp.MustCompile(`^` + r.String() + `.+`),
+
+		if h.defaultPriority == 0 {
+			h.defaultPriority = 100
 		}
-		h.priorities = append(h.priorities, p)
 
 	}
 
+}
+
+func getKeyInt(key string) (int, error) {
+	l, err := strconv.Atoi(key)
+	if err != nil {
+		return 0, err
+	}
+	return l, nil
 }
