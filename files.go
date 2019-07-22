@@ -5,19 +5,19 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"time"
 )
 
 // get all the files in the hold directory and add them to the holdFiles array
 func (h *hole) getFiles(s time.Duration) {
 	for {
-		// lock other operations while reading the directory
-		h.mutex.Lock()
 		files, err := ioutil.ReadDir(h.holdDir)
 		if err != nil {
 			log.Println(err)
 		}
-		_, files = eligibleFiles(files)
+		// fmt.Println("Checking for eligible files")
+		_, files = h.eligibleFiles(files, h.holdDir)
 	loop:
 		for _, f := range files {
 			// TODO: run regex over files to prioritis
@@ -34,8 +34,6 @@ func (h *hole) getFiles(s time.Duration) {
 			fmt.Printf("Adding File: %s with priority %d\n", f.Name(), priority)
 			h.holdFiles[priority] = append(h.holdFiles[priority], f.Name())
 		}
-		// unlock so other operations can do stuff
-		h.mutex.Unlock()
 		time.Sleep(s)
 	}
 
@@ -72,8 +70,6 @@ func (h *hole) nextFile() string {
 // checkOut looks in the out dirs and adds any empty ones to the availableDirs channel
 func (h *hole) checkOut(s time.Duration) error {
 	for {
-		// lock other operations while reading the directory
-		h.mutex.Lock()
 		for _, d := range h.outDirs {
 
 			files, err := ioutil.ReadDir(d)
@@ -81,29 +77,44 @@ func (h *hole) checkOut(s time.Duration) error {
 				return err
 			}
 			// change from len to eligible files, this will eventually also look for the archive bit on windows systems
-			l, _ := eligibleFiles(files)
+			l, _ := h.eligibleFiles(files, d)
 			if l == 0 {
 				h.availableDirs <- d
 				// sleep here to give time to make the directory used
 				// time.Sleep(100 * time.Millisecond)
 			}
 		}
-		// unlock so other operations can do stuff
-		h.mutex.Unlock()
 		time.Sleep(s)
 	}
 }
 
 // eligibleFiles returns the length of eligible files in a folder
-func eligibleFiles(files []os.FileInfo) (length int, outFiles []os.FileInfo) {
+func (h *hole) eligibleFiles(files []os.FileInfo, dir string) (length int, outFiles []os.FileInfo) {
 	// needs to check for archive bit on windows
 	for _, file := range files {
-		if file.Name()[0:1] != "." {
+		if isEligible(path.Join(dir, file.Name())) {
 			length++
 			outFiles = append(outFiles, file)
 		}
 	}
 	return
+}
+
+func isEligible(filename string) bool {
+	a, err := isArchive(filename)
+	if err != nil {
+		log.Panicf("error checking archive bit: %v", err)
+	}
+
+	h, err := isHidden(filename)
+	if err != nil {
+		log.Panicf("error checking if hidden: %v", err)
+	}
+	// fmt.Println(filename, a, h)
+	if !a && !h {
+		return true
+	}
+	return false
 }
 
 func (h *hole) getFilePriority(f string) int {

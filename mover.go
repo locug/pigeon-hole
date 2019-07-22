@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 )
@@ -12,7 +13,6 @@ func (h *hole) mover() {
 	for {
 		dir := <-h.availableDirs
 		// lock other operations while reading the directory
-		h.mutex.Lock()
 		file := h.nextFile()
 		inFile := path.Join(h.holdDir, file)
 		outFile := path.Join(dir, file)
@@ -26,10 +26,15 @@ func (h *hole) mover() {
 
 		err = ioutil.WriteFile(outFile, data, 0666)
 		if err == nil {
+			// remove the archive bit on the file
+			err := removeArchive(outFile)
+			if err != nil {
+				log.Panicf("error setting archive bit: %s", file)
+			}
 			// since there wasn't an error meaning file was written delete original
 			os.RemoveAll(inFile)
+
 		}
 		// unlock so other operations can do stuff
-		h.mutex.Unlock()
 	}
 }
