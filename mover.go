@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,6 +14,7 @@ func (h *hole) mover() {
 	for {
 		dir := <-h.availableDirs
 		// lock other operations while reading the directory
+		fmt.Println("Getting next available file")
 		file := h.nextFile()
 		inFile := path.Join(h.holdDir, file)
 		outFile := path.Join(dir, file)

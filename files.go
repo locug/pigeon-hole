@@ -78,6 +78,7 @@ func (h *hole) checkOut(s time.Duration) error {
 			}
 			// change from len to eligible files, this will eventually also look for the archive bit on windows systems
 			l, _ := h.eligibleFiles(files, d)
+			fmt.Println(l)
 			if l == 0 {
 				h.availableDirs <- d
 				// sleep here to give time to make the directory used
