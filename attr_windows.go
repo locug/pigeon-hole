@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"syscall"
 )
 
@@ -36,7 +35,6 @@ func isHidden(filename string) (bool, error) {
 }
 
 func removeArchive(filename string) error {
-	fmt.Println("Removing the archive bit")
 	pointer, err := syscall.UTF16PtrFromString(filename)
 	if err != nil {
 		return err

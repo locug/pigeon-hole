@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,15 +13,13 @@ func (h *hole) mover() {
 	for {
 		dir := <-h.availableDirs
 		// lock other operations while reading the directory
-		fmt.Println("Getting next available file")
 		file := h.nextFile()
 		inFile := path.Join(h.holdDir, file)
 		outFile := path.Join(dir, file)
 
 		data, err := ioutil.ReadFile(inFile)
 		if err != nil {
-			// ignore the error and put the file back into the channel
-			h.availableDirs <- dir
+			// if there was an error then just continue on, the file will be re-read
 			continue
 		}
 
@@ -31,7 +28,7 @@ func (h *hole) mover() {
 			// remove the archive bit on the file
 			err := removeArchive(outFile)
 			if err != nil {
-				log.Panicf("error setting archive bit: %s", file)
+				log.Printf("error setting archive bit: %s", file)
 			}
 			// since there wasn't an error meaning file was written delete original
 			os.RemoveAll(inFile)

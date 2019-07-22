@@ -31,7 +31,7 @@ func (h *hole) getFiles(s time.Duration) {
 					continue loop
 				}
 			}
-			fmt.Printf("Adding File: %s with priority %d\n", f.Name(), priority)
+			// fmt.Printf("Adding File: %s with priority %d\n", f.Name(), priority)
 			h.holdFiles[priority] = append(h.holdFiles[priority], f.Name())
 		}
 		time.Sleep(s)
@@ -74,11 +74,11 @@ func (h *hole) checkOut(s time.Duration) error {
 
 			files, err := ioutil.ReadDir(d)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
 			// change from len to eligible files, this will eventually also look for the archive bit on windows systems
 			l, _ := h.eligibleFiles(files, d)
-			fmt.Println(l)
 			if l == 0 {
 				h.availableDirs <- d
 				// sleep here to give time to make the directory used
