@@ -23,17 +23,24 @@ func (h *hole) mover() {
 			continue
 		}
 
+		// Create the file
+		fhandle, err := os.Create(outFile)
+		// set the archive bit so LOC doesn't process this file
+		err = setArchive(outFile)
+
 		err = ioutil.WriteFile(outFile, data, 0666)
-		if err == nil {
-			// remove the archive bit on the file
-			err := removeArchive(outFile)
-			if err != nil {
-				log.Printf("error setting archive bit: %s", file)
-			}
+		if err != nil {
+			log.Println("error writing file: ", err)
+		}
+		// remove the archive bit on the file
+		err = removeArchive(outFile)
+		if err != nil {
+			log.Printf("error setting archive bit: %s", file)
+		} else {
 			// since there wasn't an error meaning file was written delete original
 			os.RemoveAll(inFile)
-
+			fhandle.Close()
 		}
-		// unlock so other operations can do stuff
+		log.Printf("Moving %s to %s", file, dir)
 	}
 }
