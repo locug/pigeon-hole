@@ -25,7 +25,7 @@ type priority struct {
 }
 
 func main() {
-	// need a "new" function and these to be passed by variable
+	// TODO: need a "new" function and these to be passed by variable
 	var h hole
 	err := h.make("hole.ini")
 	if err != nil {
