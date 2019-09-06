@@ -7,6 +7,7 @@
   </component>
   <component name="ProjectId" id="1QRc7q2Ssq3OU5TAgBQ4kQOYFc8" />
   <component name="PropertiesComponent">
+    <property name="GO_FMT" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
